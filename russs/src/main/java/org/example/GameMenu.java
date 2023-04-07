@@ -43,44 +43,6 @@ public class GameMenu extends GameApplication {
             getContentRoot().setTranslateX(FXGL.getAppWidth() / 2.0 - SIZE);
             getContentRoot().setTranslateY(FXGL.getAppHeight() / 2.0 - SIZE);
 
-            var shape = Shape.subtract(new Circle(SIZE, SIZE, SIZE), new Rectangle(0, SIZE, SIZE*2, SIZE));
-
-            var shape2 = Shape.subtract(shape, new Rectangle(0, 0, SIZE, SIZE));
-
-            shape = Shape.subtract(shape, new Rectangle(SIZE, 0, SIZE, SIZE));
-
-            shape.setStrokeWidth(2.5);
-            shape.strokeProperty().bind(
-                    Bindings.when(shape.hoverProperty()).then(Color.YELLOW).otherwise(Color.BLACK)
-            );
-
-            shape.fillProperty().bind(
-                    Bindings.when(shape.pressedProperty()).then(Color.YELLOW).otherwise(Color.color(0.1, 0.05, 0.0, 0.75))
-            );
-
-            shape.setOnMouseClicked(e -> fireResume());
-
-            shape2.setStrokeWidth(2.5);
-            shape2.strokeProperty().bind(
-                    Bindings.when(shape2.hoverProperty()).then(Color.YELLOW).otherwise(Color.BLACK)
-            );
-
-            shape2.fillProperty().bind(
-                    Bindings.when(shape2.pressedProperty()).then(Color.YELLOW).otherwise(Color.color(0.1, 0.05, 0.0, 0.75))
-            );
-            shape2.setOnMouseClicked(e -> FXGL.getGameController().exit());
-
-            var shape3 = new Rectangle(SIZE*2, SIZE / 2);
-            shape3.setStrokeWidth(2.5);
-            shape3.strokeProperty().bind(
-                    Bindings.when(shape3.hoverProperty()).then(Color.YELLOW).otherwise(Color.BLACK)
-            );
-
-            shape3.fillProperty().bind(
-                    Bindings.when(shape3.pressedProperty()).then(Color.YELLOW).otherwise(Color.color(0.1, 0.05, 0.0, 0.75))
-            );
-
-            shape3.setTranslateY(SIZE);
 
             Text textResume = FXGL.getUIFactoryService().newText("RESUME", Color.WHITE, FontType.GAME, 24.0);
             textResume.setTranslateX(50);
@@ -97,7 +59,7 @@ public class GameMenu extends GameApplication {
             textOptions.setTranslateY(195);
             textOptions.setMouseTransparent(true);
 
-            getContentRoot().getChildren().addAll(shape, shape2, shape3, textResume, textExit, textOptions);
+            getContentRoot().getChildren().addAll( textResume, textExit, textOptions);
 
             getContentRoot().setScaleX(0);
             getContentRoot().setScaleY(0);
@@ -122,6 +84,13 @@ public class GameMenu extends GameApplication {
         protected void onUpdate(double tpf) {
             animation.onUpdate(tpf);
         }
+    }
+
+    public static class MyMainMenu extends FXGLMenu {
+        public MyMainMenu(){
+            super(MenuType.MAIN_MENU);
+        }
+
     }
 
     public static void main(String[] args) {

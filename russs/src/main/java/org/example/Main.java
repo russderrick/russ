@@ -1,34 +1,28 @@
 package org.example;
 
 import com.almasb.fxgl.app.GameApplication;
-import com.almasb.fxgl.app.GameController;
 import com.almasb.fxgl.app.GameSettings;
-import com.almasb.fxgl.dsl.EntityBuilder;
 import com.almasb.fxgl.dsl.FXGL;
 import com.almasb.fxgl.entity.Entity;
-import com.almasb.fxgl.entity.components.BoundingBoxComponent;
+import com.almasb.fxgl.entity.EntityFactory;
+import com.almasb.fxgl.entity.GameWorld;
 import com.almasb.fxgl.entity.components.CollidableComponent;
 import com.almasb.fxgl.input.UserAction;
 import com.almasb.fxgl.input.virtual.VirtualButton;
-import com.almasb.fxgl.physics.BoundingShape;
 import com.almasb.fxgl.physics.CollisionHandler;
-import com.almasb.fxgl.physics.HitBox;
-import com.almasb.fxgl.physics.PhysicsUnitConverter;
-import com.almasb.fxgl.physics.box2d.collision.shapes.Shape;
-import com.almasb.fxgl.texture.AnimatedTexture;
 import com.almasb.fxgl.time.TimerAction;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.MouseButton;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
+import org.example.Component.IkunComponent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
 import static com.almasb.fxgl.dsl.FXGLForKtKt.*;
-import static org.example.EntityType.CHICKEN;
-import static org.example.EntityType.IKUN;
+import static org.example.EntityType.*;
 
 
 public class Main extends GameApplication {
@@ -38,8 +32,11 @@ public class Main extends GameApplication {
     boolean gameover = false;
     private String tpff;
     int finalscore = 0;
+    int basketball = 0;
+    int bossblood = 25;
     double timer = 2;
-
+    TimerAction timerAction;
+    TimerAction finaltimerAction;
 
 
     @Override
@@ -56,10 +53,8 @@ public class Main extends GameApplication {
 
         getGameWorld().addEntityFactory(new PlayerFactory());
         getGameWorld().spawn("ikun");
-
-
-        getGameTimer().runAtInterval(() -> {
-            if(finalscore <= 8){
+        timerAction = getGameTimer().runAtInterval(() -> {
+            if(finalscore < 8){
                 getGameWorld().spawn("chicken");
                 getWorldProperties().increment("score", +1);
                 timer = 0.99 * timer;
@@ -68,11 +63,14 @@ public class Main extends GameApplication {
             else{
                 getGameWorld().spawn("chicken");
                 getGameWorld().spawn("hardchicken");
-                getWorldProperties().increment("score", +1);
+                getWorldProperties().increment("score", +2);
                 timer = 0.9 * timer;
-                finalscore ++;
+                finalscore += 2;
             }
+            getGameWorld().spawn("basketball");
             }, Duration.seconds(timer));
+
+
         super.initGame();
     } //entity initial, gamescene initial
 
@@ -90,9 +88,6 @@ public class Main extends GameApplication {
         textscore.textProperty().bind(getWorldProperties().intProperty("score").asString());
         getGameScene().addUINode(textscore);
 
-
-
-
     }
 
     @Override
@@ -109,11 +104,11 @@ public class Main extends GameApplication {
                 getGameController().exit();
             } , Duration.millis(1));
         }
-
-        getGameTimer().runAtInterval(() -> {
-
-
-        }, Duration.seconds(2 - tpf * 2.5));
+        if(finalscore > 12 && finalscore < 20){
+            timerAction.expire();
+            getGameWorld().spawn("bosschicken");
+            finalscore = 100;
+        }
 
     }
 
@@ -127,6 +122,43 @@ public class Main extends GameApplication {
                 super.onCollisionBegin(newikun, newchicken);
             }
         });
+        FXGL.getPhysicsWorld().addCollisionHandler(new CollisionHandler(IKUN,BASKETBALL) {
+            @Override
+            protected void onCollisionBegin(Entity newikun, Entity newbasketball) {
+                newbasketball.removeFromWorld();
+                basketball ++;
+                super.onCollisionBegin(newikun, newbasketball);
+            }
+        });
+        FXGL.getPhysicsWorld().addCollisionHandler(new CollisionHandler(IKUN,BOSS) {
+            @Override
+            protected void onCollisionBegin(Entity newikun, Entity newbosschicken) {
+                newikun.removeFromWorld();
+                super.onCollisionBegin(newikun, newbosschicken);
+            }
+        });
+        FXGL.getPhysicsWorld().addCollisionHandler(new CollisionHandler(BULLET,BOSS) {
+            @Override
+            protected void onCollisionBegin(Entity newbullet, Entity newbosschicken) {
+                double x = newbullet.getRightX();
+                double y = newbullet.getBottomY();
+                newbullet.removeFromWorld();
+                getGameWorld().spawn("explosion")
+                        .setPosition(x,y);
+                bossblood --;
+                if(bossblood == 0)
+                    newbosschicken.removeFromWorld();
+                super.onCollisionBegin(newbosschicken, newbullet);
+            }
+        });
+        FXGL.getPhysicsWorld().addCollisionHandler(new CollisionHandler(BOSS,BASKETBALL) {
+            @Override
+            protected void onCollisionBegin(Entity newbulletchicken, Entity newbullet) {
+                newbullet.removeFromWorld();
+                newbulletchicken.removeFromWorld();
+                super.onCollisionBegin(newbulletchicken, newbullet);
+            }
+        });
 
         super.initPhysics();
     }   // collision
@@ -134,7 +166,7 @@ public class Main extends GameApplication {
     protected void initInput() {
         getInput().addAction(new UserAction("Jump") {
             @Override
-            protected void onActionBegin() {
+            protected void onAction() {
                 IkunComponent.jump();
             }
         }, KeyCode.W, VirtualButton.UP);
@@ -156,6 +188,18 @@ public class Main extends GameApplication {
                 requestNewGame();
             }
         }, KeyCode.F1);
+            getInput().addAction(new UserAction("fire") {
+                @Override
+                protected void onActionBegin() {
+                    if(basketball > 0 && finalscore >12) {
+                        getGameWorld().spawn("bullet");
+                        basketball --;
+                    }
+
+                    super.onActionBegin();
+                }
+            }, MouseButton.PRIMARY);
+
     }     //user interaction
 
     public void requestNewGame() {
