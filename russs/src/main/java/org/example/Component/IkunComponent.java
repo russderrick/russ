@@ -28,11 +28,11 @@ public class IkunComponent extends Component {
         if(acceleration.x > 0)
             acceleration.x -= tpf * 8;
 
-        if (acceleration.y < -5)
-            acceleration.y = -5;
+        if (acceleration.y < -2)
+            acceleration.y = -2;
 
-        if (acceleration.y > 5)
-            acceleration.y = 5;
+        if (acceleration.y > 2)
+            acceleration.y = 2;
 
         entity.translate(acceleration.x, acceleration.y);
 
@@ -49,13 +49,13 @@ public class IkunComponent extends Component {
     }
 
     public static void jump(){
-        acceleration.addLocal(0,-5);
+        acceleration.addLocal(0,-2);
     }
     public static void forward() {
-        acceleration.addLocal(0.5, 0);
+        acceleration.addLocal(0.15, 0);
     }
     public static void backward() {
-        acceleration.addLocal(-0.5, 0);
+        acceleration.addLocal(-0.15, 0);
     }
     public static void fire(){
 

@@ -4,9 +4,6 @@ import com.almasb.fxgl.app.GameApplication;
 import com.almasb.fxgl.app.GameSettings;
 import com.almasb.fxgl.dsl.FXGL;
 import com.almasb.fxgl.entity.Entity;
-import com.almasb.fxgl.entity.EntityFactory;
-import com.almasb.fxgl.entity.GameWorld;
-import com.almasb.fxgl.entity.components.CollidableComponent;
 import com.almasb.fxgl.input.UserAction;
 import com.almasb.fxgl.input.virtual.VirtualButton;
 import com.almasb.fxgl.physics.CollisionHandler;
@@ -17,6 +14,8 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
 import org.example.Component.IkunComponent;
+import org.example.Menu.GameMenu;
+import org.example.Menu.MyMainMenu;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
@@ -38,12 +37,14 @@ public class Main extends GameApplication {
     TimerAction timerAction;
     TimerAction finaltimerAction;
 
-
     @Override
     protected void initSettings(@NotNull GameSettings gameSettings) {
         gameSettings.setTitle("chicken fly");
         gameSettings.setWidth(1280);
         gameSettings.setHeight(720);
+        gameSettings.setSceneFactory(new GameMenu.MySceneFactory());
+        gameSettings.setMainMenuEnabled(true);
+
 
     } // basic gamesetting
 
@@ -151,14 +152,6 @@ public class Main extends GameApplication {
                 super.onCollisionBegin(newbosschicken, newbullet);
             }
         });
-        FXGL.getPhysicsWorld().addCollisionHandler(new CollisionHandler(BOSS,BASKETBALL) {
-            @Override
-            protected void onCollisionBegin(Entity newbulletchicken, Entity newbullet) {
-                newbullet.removeFromWorld();
-                newbulletchicken.removeFromWorld();
-                super.onCollisionBegin(newbulletchicken, newbullet);
-            }
-        });
 
         super.initPhysics();
     }   // collision
@@ -208,7 +201,11 @@ public class Main extends GameApplication {
     private void showGameOver() {
         showMessage("你的分数是" + finalscore);
         showMessage("小黑子还要继续努力呦");
-        gameover = true;
+        finalscore = 0;
+        getGameTimer().runOnceAfter(() ->{
+            FXGL.getGameController().gotoMainMenu();
+        }, Duration.seconds(0.5));
+
     }
 
 

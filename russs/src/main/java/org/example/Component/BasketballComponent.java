@@ -2,6 +2,7 @@ package org.example.Component;
 
 import com.almasb.fxgl.core.math.Vec2;
 import com.almasb.fxgl.entity.component.Component;
+import com.almasb.fxgl.texture.Texture;
 
 import static com.almasb.fxgl.dsl.FXGLForKtKt.getAppHeight;
 
